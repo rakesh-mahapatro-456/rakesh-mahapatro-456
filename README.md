@@ -79,9 +79,6 @@ A travel listings platform to explore and book unique stays around the world. In
 ### 🔥 Streak Stats
 ![GitHub Streak](https://github-readme-streak-stats.herokuapp.com/?user=rakesh-mahapatro-456&theme=radical)
 
-###  Visitor Badge
-![Visitor Badge](https://visitor-badge.glitch.me/badge?page_id=rakesh-mahapatro-456.rakesh-mahapatro-456)
-
 ---
 
 ## 📫 Contact Me
