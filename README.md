@@ -138,8 +138,8 @@ A gamified DSA practice platform built around a **WebSocket-heavy backend** and 
                                       ┌─────────────────────────┐
                                       │  XP & Progression Engine│
                                       │  Streak logic           │
-                                      │  Badge unlock triggers  │
-                                      │  Leaderboard ranking    │
+                                      │  Badge / Leaderboard    │
+                                      │  (schema only, not impl)│
                                       └─────────────────────────┘
                                                   │
                                       ┌─────────────────────────┐
@@ -149,11 +149,11 @@ A gamified DSA practice platform built around a **WebSocket-heavy backend** and 
                                       └─────────────────────────┘
 ```
 - Socket.IO room architecture with presence tracking and event broadcasting
-- Server-side XP engine — streak calculation, level thresholds, badge unlock logic
+- Server-side XP engine — streak calculation, level thresholds; Badge and Leaderboard models exist in schema but are not yet implemented
 - Cron jobs via `node-cron` — auto-assign daily targets and generate 5-problem daily challenges at midnight IST
 - Problem status system: `-1` backlog → `0` today (cron-assigned) → `1` solved → `2` future
 - Cloudinary upload pipeline — file/image ingestion with metadata persisted to MongoDB
-- JWT auth (httpOnly cookies) + full CRUD REST API for problems, users, progress, rooms
+- JWT auth (custom) + full CRUD REST API for problems, users, progress, rooms
 
 [![GitHub](https://img.shields.io/badge/GitHub-Codexa-181717?style=flat-square&logo=github)](https://github.com/rakesh-mahapatro-456/codexa)
 
