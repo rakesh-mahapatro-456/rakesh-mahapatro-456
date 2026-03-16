@@ -85,32 +85,33 @@ Current focus: **AI agent orchestration**, **real-time event-driven architecture
 
 ### ⚡ AgentIQ — AI Agentic Workforce for Sales Automation
 
-> `FastAPI` `LangGraph` `Groq (Llama 3.3 70B)` `Supabase/pgvector` `Salesforce OAuth 2.0 PKCE` `SSE` `Next.js 16`
+> `FastAPI` `LangGraph` `Groq (Llama 3.3 70B)` `Supabase/pgvector` `Salesforce OAuth 2.0 PKCE` `FPDF2` `SSE` `Next.js 16`
 >
 > 🏆 Built for **NeuraX 2.0 — National Level Hackathon**
 
-An enterprise-grade AI platform that automates the entire sales proposal lifecycle using a **multi-agent LangGraph pipeline** wired into live Salesforce CRM data and a private RAG Knowledge Base.
+An end-to-end hackathon demo that automates the entire sales proposal lifecycle using a **LangGraph ReAct agent** wired into live Salesforce CRM data and a private RAG Knowledge Base.
 
 **System Architecture:**
 ```
   Salesforce CRM ──OAuth 2.0 PKCE──► FastAPI Backend
        (live leads)                        │
-                                     LangGraph DAG
-  Supabase pgvector ◄──semantic──►  ┌──────────────┐
-   (Knowledge Base)    search       │  Discovery   │ ← fetches live CRM lead
-                                    │  Research    │ ← semantic KB search
-  Groq / Llama 3.3 70B ◄───────────│  Writer      │ ← generates proposal
-                                    │  Scoring     │ ← critiques on 1–100 scale
-                                    └──────────────┘
-                                           │ SSE stream
-  Next.js 16 Frontend ◄─────live logs──────┘
+                                     LangGraph ReAct Loop
+  Supabase Postgres  ◄─match_documents─►  ┌──────────────────┐
+  + pgvector (KB)          RPC            │  CRM Tool        │ ← fetch leads from Salesforce
+                                          │  RAG Tool        │ ← semantic KB search
+  Groq / Llama 3.3 70B ◄─────────────────│  Proposal Tool   │ ← generate + export PDF
+                                          └──────────────────┘
+                                                 │ SSE (agent step events only)
+  Next.js 16 Frontend ◄────live logs────────────┘
+                       ◄────PDF via POST /api/agent/export-pdf (separate fetch)
 ```
 
 **What's technically interesting:**
-- Non-linear 4-node agent pipeline — stateful, resumable, full observability via SSE thought console
-- Private RAG pipeline: PDF/DOC ingestion → chunking → `pgvector` embeddings → semantic retrieval at query time
-- Live Salesforce CRM sync via OAuth PKCE — real lead context flowing into agent at inference time
-- Proposal scorer evaluates personalization, CTA strength, value proposition — outputs actionable improvement hints
+- ReAct loop (Reason → Act → Observe) — agent decides tool order based on context at inference time
+- Private RAG pipeline: PDF/DOC ingestion → chunking → `all-MiniLM-L6-v2` embeddings → Supabase Postgres + pgvector, queried via `match_documents` RPC
+- Live Salesforce CRM sync via OAuth 2.0 PKCE — real lead context flowing into agent at inference time
+- PDF proposal generation via FPDF2 — exported through `POST /api/agent/export-pdf`; SSE streams agent step events only, PDF fetched separately
+- Live agent observability via SSE — every ReAct step streamed to browser (Fetching CRM → Searching KB → Drafting PDF → Final Review)
 - Batch CSV pipeline for mass proposal generation across hundreds of leads simultaneously
 
 [![GitHub](https://img.shields.io/badge/GitHub-AgentIQ-181717?style=flat-square&logo=github)](https://github.com/rakesh-mahapatro-456/agentiq)
@@ -119,11 +120,11 @@ An enterprise-grade AI platform that automates the entire sales proposal lifecyc
 
 ### 🔴 Codexa — Real-time Collaborative DSA Platform
 
-> `Node.js` `Express.js` `MongoDB` `Socket.IO` `Cloudinary` `React` `Redux` `Tailwind CSS`
+> `Node.js` `Express.js 5` `MongoDB` `Socket.IO` `node-cron` `Cloudinary` `Next.js 15` `Redux` `Tailwind CSS`
 >
 > [Live Demo →](https://codexa-tau.vercel.app)
 
-A gamified DSA practice platform built around a **WebSocket-heavy backend**. The real-time layer is the core product — everything else (XP, streaks, leaderboard) runs through it.
+A gamified DSA practice platform built around a **WebSocket-heavy backend** and an **automated cron job system**. The real-time layer is the core product — XP, streaks, and daily targets all run server-side.
 
 **Backend highlights:**
 ```
@@ -140,9 +141,17 @@ A gamified DSA practice platform built around a **WebSocket-heavy backend**. The
                                       │  Badge unlock triggers  │
                                       │  Leaderboard ranking    │
                                       └─────────────────────────┘
+                                                  │
+                                      ┌─────────────────────────┐
+                                      │  Cron Jobs (IST)        │
+                                      │  dailyTarget   → 00:00  │
+                                      │  dailyChallenge→ 00:00  │
+                                      └─────────────────────────┘
 ```
 - Socket.IO room architecture with presence tracking and event broadcasting
 - Server-side XP engine — streak calculation, level thresholds, badge unlock logic
+- Cron jobs via `node-cron` — auto-assign daily targets and generate 5-problem daily challenges at midnight IST
+- Problem status system: `-1` backlog → `0` today (cron-assigned) → `1` solved → `2` future
 - Cloudinary upload pipeline — file/image ingestion with metadata persisted to MongoDB
 - JWT auth (httpOnly cookies) + full CRUD REST API for problems, users, progress, rooms
 
@@ -152,32 +161,34 @@ A gamified DSA practice platform built around a **WebSocket-heavy backend**. The
 
 ### 🟡 Flow CRM — Lead Management System
 
-> `Node.js` `Express.js` `MongoDB` `JWT` `bcrypt` `Joi` `React` `Redux` `Tailwind CSS`
+> `Node.js` `Express.js` `MongoDB` `JWT` `bcrypt` `Joi` `React` `Redux` `AG Grid` `Tailwind CSS`
 >
 > [Live Demo →](https://flow-crm-theta.vercel.app)
 
-A production-grade CRM backend built around a custom **server-side query engine** with multi-type filtering and paginated responses.
+A full-stack lead management system with JWT auth, server-side enum/string filtering, pagination, and a rich Lead schema covering the full CRM lifecycle.
 
 **Backend highlights:**
 ```
-  GET /leads?status=active&revenue[gt]=50000&createdAt[between]=...
-        │
-        ▼
-  ┌──────────────────────────────────────────────────────┐
-  │  Filter Engine                                       │
-  │  ├── string   →  equals | contains                  │
-  │  ├── enum     →  equals | in                        │
-  │  ├── numeric  →  equals | gt | lt | between         │
-  │  ├── date     →  on | before | after | between      │
-  │  └── boolean  →  equals                             │
-  │  All filters: AND logic, processed server-side       │
-  └──────────────────────────────────────────────────────┘
-        │
-        ▼
-  Paginated MongoDB query  →  { data, page, total, hasMore }
+  Frontend (React + AG Grid)
+         │
+         ▼
+  Express REST API
+  ├── /api/user    →  auth (signup, login, logout, me)
+  └── /api/leads   →  CRUD + filtering + pagination
+         │
+         ▼
+  Auth Middleware  →  JWT verify on every /api/leads route
+         │
+         ▼
+  MongoDB (Mongoose)
+  ├── User  →  name, username, email, passwordHash
+  └── Lead  →  source, status, score, lead_value,
+               is_qualified, last_activity_at, timestamps
 ```
-- All query processing happens server-side — never pushed to the client
-- JWT httpOnly cookie auth with bcrypt hashing and Joi validation at every route
+- Lead schema covers full CRM lifecycle — source, status (new / contacted / qualified / lost / won), score, value, activity tracking
+- Server-side filtering on enum fields (`status`, `source`) and string fields; paginated responses `{ data, page, total, hasMore }`
+- JWT stored in httpOnly cookies — validated on every protected route; bcrypt password hashing; Joi validation on write routes
+- AG Grid on the frontend — sortable, filterable data tables with real-time UI updates after every CRUD operation
 - Protected route middleware with proper 401/403 error handling
 
 [![GitHub](https://img.shields.io/badge/GitHub-FlowCRM-181717?style=flat-square&logo=github)](https://github.com/rakesh-mahapatro-456/Flow-Crm)
@@ -186,25 +197,25 @@ A production-grade CRM backend built around a custom **server-side query engine*
 
 ### 🟠 Catalogo — E-Commerce Platform
 
-> `Node.js` `Express.js` `MongoDB` `JWT` `bcrypt` `Joi` `React` `Redux` `Vite`
+> `Node.js` `Express.js` `MongoDB` `JWT` `bcrypt` `React` `Redux` `Vite` `Tailwind CSS`
 >
-> [Live Demo →](https://catalogo.vercel.app)
+> [Live Demo →](https://catalogo-seven-kappa.vercel.app) · [Demo Video →](https://youtu.be/qt7saA_NRGI)
 
 Full-stack e-commerce system with **Role-Based Access Control**, a cart engine, and a checkout pipeline.
 
 **Backend highlights:**
 ```
-  Request → Auth Middleware → Role Guard → Route Handler
-                                  │
-                          ┌───────┴───────┐
-                        ADMIN           USER
-                     POST /products    GET /products
-                     PATCH /:id        GET /cart
-                     DELETE /:id       POST /cart
-                                       POST /cart/checkout
-                     Unauthorized  →  403 Forbidden
+  Request → Auth Middleware (JWT Bearer) → Controller Role Check
+                                                  │
+                                     ┌────────────┴────────────┐
+                                   ADMIN                     USER
+                                POST /products            GET /products
+                                PATCH /products/:id       GET /cart
+                                DELETE /products/:id      POST /cart
+                                                          POST /cart/checkout
+                                Unauthorized  →  403 Access Denied
 ```
-- RBAC enforced at middleware level — role checked before any handler executes
+- RBAC enforced at controller level — role checked before any business logic executes
 - Cart engine maintains server-side state; checkout generates full order summary/receipt
 - Input validated with Joi on every write route; passwords hashed with bcrypt
 
@@ -214,17 +225,27 @@ Full-stack e-commerce system with **Role-Based Access Control**, a cart engine, 
 
 ### 🟢 Wanderlust — Travel Listings Platform
 
-> `Node.js` `Express.js` `MongoDB` `Passport.js` `Cloudinary` `Mapbox/GeoJSON` `EJS` `Bootstrap`
+> `Node.js` `Express.js` `MongoDB` `Passport.js` `Cloudinary` `LocationIQ` `MapLibre GL` `MapTiler` `EJS` `Bootstrap`
 >
 > [Live Demo →](https://wander-lust-90sw.onrender.com/listings)
 
 MVC-architecture travel listings app with geospatial data, image hosting, and a review system — a clean reference for server-rendered patterns.
 
 **Backend highlights:**
-- GeoJSON coordinate storage + Mapbox integration for location-aware listing display
-- Cloudinary image upload pipeline — multi-image handling with URL metadata in MongoDB
-- Passport-Local-Mongoose session auth with secure cookie handling
-- Cascading deletes — orphaned reviews auto-removed when parent listing is deleted
+```
+  POST /listings  →  Joi validation → Cloudinary upload → LocationIQ geocode
+                                              │
+                              ┌───────────────┴───────────────┐
+                        image { url, filename }          GeoJSON coords
+                        stored in MongoDB                stored in MongoDB
+                              │                                │
+                        served via CDN               MapLibre GL + MapTiler
+                                                      renders map on page
+```
+- LocationIQ geocoding API → GeoJSON coordinates stored in MongoDB and rendered via MapLibre GL + MapTiler tiles
+- Cloudinary image upload pipeline (`multer-storage-cloudinary`) — `{ url, filename }` stored in MongoDB
+- Passport-Local-Mongoose session auth with httpOnly cookie handling
+- Cascading deletes — orphaned reviews auto-removed when parent listing is deleted (Mongoose middleware)
 
 [![GitHub](https://img.shields.io/badge/GitHub-Wanderlust-181717?style=flat-square&logo=github)](https://github.com/rakesh-mahapatro-456/wander-Lust)
 
@@ -232,11 +253,31 @@ MVC-architecture travel listings app with geospatial data, image hosting, and a 
 
 ### 🔵 ReadQuest — Book Discovery App
 
-> `React` `Redux` `Vite` `Open Library API` `Tailwind CSS` `shadcn/ui`
+> `Node.js` `Express` `React` `Redux` `Vite` `Open Library API` `Tailwind CSS` `shadcn/ui`
 >
 > [Live Demo →](https://read-quest.vercel.app)
 
-Frontend-focused project — search, client-side caching, search history, and dark/light theme over the Open Library API. Clean example of Redux state management and external API integration.
+Book discovery app with an **Express proxy backend** that handles CORS and forwards requests to the Open Library API. Search results are cached in Redux to avoid redundant API calls.
+
+**Highlights:**
+```
+  Frontend (React + Vite)
+         │
+         ▼  VITE_BASE_URL
+  Express Backend (proxy) — Render
+  ├── GET /api/search          →  proxy → Open Library /search.json
+  └── GET /api/books/:workId   →  proxy → Open Library /works/:workId.json
+
+  User search → Redux store check
+                     │
+             ┌───────┴────────┐
+         cached             not cached
+             │                    │
+       return instantly      GET /api/search → store in Redux
+```
+- Express proxy backend handles CORS — frontend never calls Open Library directly
+- Redux caching layer — repeated searches return instantly without hitting the API
+- Search history (`lastQuery`, `lastBooks`) and theme preference persisted in localStorage
 
 [![GitHub](https://img.shields.io/badge/GitHub-ReadQuest-181717?style=flat-square&logo=github)](https://github.com/rakesh-mahapatro-456/ReadQuest)
 
