@@ -138,8 +138,6 @@ A gamified DSA practice platform built around a **WebSocket-heavy backend** and 
                                       ┌─────────────────────────┐
                                       │  XP & Progression Engine│
                                       │  Streak logic           │
-                                      │  Badge / Leaderboard    │
-                                      │  (schema only, not impl)│
                                       └─────────────────────────┘
                                                   │
                                       ┌─────────────────────────┐
