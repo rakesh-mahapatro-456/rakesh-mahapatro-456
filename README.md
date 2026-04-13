@@ -117,45 +117,6 @@ An end-to-end hackathon demo that automates the entire sales proposal lifecycle 
 [![GitHub](https://img.shields.io/badge/GitHub-AgentIQ-181717?style=flat-square&logo=github)](https://github.com/rakesh-mahapatro-456/agentiq)
 
 ---
-Your GitHub profile README already looks solid. Here's exactly what to add — just insert BidMaster AI between AgentIQ and Codexa:
-
----
-
-```markdown
-### 🟣 BidMaster AI — RL Environment for Programmatic Ad Bidding
-
-> `Python` `FastAPI` `LangGraph` `OpenAI Client` `Gradio` `Docker` `HuggingFace Spaces`
->
-> 🏆 Built for **OpenEnv Hackathon**
->
-> [Live Demo →](https://huggingface.co/spaces/codex2345908/bidmaster-ai)
-
-A reinforcement learning environment where an LLM-powered agent manages a **$50 budget across 200 real-time second-price auctions**, optimizing for ROI across three progressively harder tasks.
-
-**System Architecture:**
-```
-Impression Stream → Observation (budget, features, metrics) → LLM Agent
-                                                                    │
-                                        ┌───────────────────────────┘
-                                    Bid Action
-                                        │
-                            ┌───────────┴───────────┐
-                          WIN                      PASS
-                       pay market price          reward = 0
-                       earn true value
-                       reward = f(ROI)
-```
-- Three-task RL curriculum — Win Target (easy) → Maximize ROI (medium) → Throttle & Spike (hard)
-- Adaptive LLM bidding strategy — segment-based base bids with dynamic adjustments based on budget and impression context
-- Second-price auction mechanics — winner pays market price, not their bid; true value revealed only on win
-- Baseline scores: Task 1 → 0.999, Task 2 → 0.999, Task 3 → 0.635 | Average: **0.878**
-- Deployed on HuggingFace Spaces via Docker with Gradio UI for manual play
-
-[![GitHub](https://img.shields.io/badge/GitHub-BidMasterAI-181717?style=flat-square&logo=github)](https://github.com/rakesh-mahapatro-456/bidmaster-ai)
-```
-
-
----
 
 ### 🔴 Codexa — Real-time Collaborative DSA Platform
 
